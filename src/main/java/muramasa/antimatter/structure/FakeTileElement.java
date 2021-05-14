@@ -21,6 +21,7 @@ public class FakeTileElement extends StructureElement {
 
     private final IBlockStatePredicate[] preds;
     private final EnumMap<Direction, ICover> covers = new EnumMap<>(Direction.class);
+    private boolean tick;
 
     public FakeTileElement(IBlockStatePredicate... pred) {
         this.preds = pred;
@@ -79,6 +80,15 @@ public class FakeTileElement extends StructureElement {
         return false;
     }
 
+    public FakeTileElement tick() {
+        this.tick = true;
+        return this;
+    }
+
+    public boolean ticks() {
+        return this.tick;
+    }
+
     public FakeTileElement cover(Direction side, ICover cover) {
         this.covers.put(side, cover);
         return this;
@@ -96,6 +106,8 @@ public class FakeTileElement extends StructureElement {
         world.setBlockState(pos, Data.PROXY_INSTANCE.getDefaultState(), 2 | 8);
         TileEntityFakeBlock tile = (TileEntityFakeBlock) world.getTileEntity(pos);
         tile.setState(oldState).setFacing(machine.getFacing()).setCovers(covers);
+        if (tick) tile.setTick();
+
         tile.addController(machine);
         super.onBuild(machine, pos, result, count);
     }

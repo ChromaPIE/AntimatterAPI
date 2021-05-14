@@ -42,6 +42,7 @@ public class TileEntityMultiMachine extends TileEntityBasicMultiMachine {
 
     @Override
     public void afterStructureFormed(){
+        super.onStructureFormed();
         this.result.components.forEach((k, v) -> v.forEach(c -> {
             c.onStructureFormed(this);
         }));

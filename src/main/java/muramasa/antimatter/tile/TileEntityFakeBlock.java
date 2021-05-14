@@ -40,6 +40,7 @@ public class TileEntityFakeBlock extends TileEntityBase {
     private final Set<TileEntityBasicMultiMachine> controllers = new ObjectOpenHashSet<>();
     private Map<Direction, ICover> covers = new EnumMap<>(Direction.class);
     public Direction facing;
+    private boolean ticks;
 
     public final Map<Direction, DynamicTexturer<ICover, ICover.DynamicKey>> coverTexturer;
 
@@ -54,6 +55,14 @@ public class TileEntityFakeBlock extends TileEntityBase {
         if (world != null)
             world.notifyNeighborsOfStateChange(pos, getBlockState().getBlock());
         controllers.add(controller);
+    }
+
+    public void setTick() {
+        this.ticks = true;
+    }
+
+    public boolean ticks() {
+        return this.ticks;
     }
 
     public void removeController(TileEntityBasicMultiMachine controller) {
@@ -121,6 +130,9 @@ public class TileEntityFakeBlock extends TileEntityBase {
             this.controllerPos = new ObjectArrayList<>(list.size());
             list.forEach(n -> controllerPos.add(BlockPos.fromLong(((LongNBT)n).getLong())));
         }
+        if (nbt.contains("T")) {
+            this.ticks = nbt.getBoolean("T");
+        }
     }
 
     @Nonnull
@@ -153,6 +165,7 @@ public class TileEntityFakeBlock extends TileEntityBase {
                 list.add(LongNBT.valueOf(controller.getPos().toLong()));
             }
             compound.put("P", list);
+            compound.putBoolean("T", ticks);
         }
         return nbt;
     }

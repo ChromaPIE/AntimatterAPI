@@ -82,7 +82,7 @@ public class TileEntityMachine extends TileEntityTickable implements INamedConta
     public LazyOptional<MachineFluidHandler<?>> fluidHandler;
     public LazyOptional<MachineEnergyHandler<?>> energyHandler;
     public LazyOptional<MachineRecipeHandler<?>> recipeHandler;
-    public LazyOptional<MachineCoverHandler<TileEntityMachine>> coverHandler;
+    public LazyOptional<MachineCoverHandler<?>> coverHandler;
 
     /** Texture related areas. **/
     public LazyValue<DynamicTexturer<TileEntityMachine, DynamicKey>> multiTexturer;

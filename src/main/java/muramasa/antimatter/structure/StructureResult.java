@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import muramasa.antimatter.capability.IComponentHandler;
 import muramasa.antimatter.tile.multi.TileEntityBasicMultiMachine;
 import muramasa.antimatter.util.int2;
@@ -27,7 +28,7 @@ public class StructureResult {
     //TODO compile list of positions
 
     public Object2ObjectMap<String, List<IComponentHandler>> components = new Object2ObjectOpenHashMap<>();
-    public Object2ObjectMap<String, List<BlockState>> states = new Object2ObjectOpenHashMap<>();
+    public Object2ObjectMap<String, List<Tuple<BlockPos,BlockState>>> states = new Object2ObjectOpenHashMap<>();
     public LongList positions = new LongArrayList();
 
     public StructureResult(Structure structure) {
@@ -57,9 +58,9 @@ public class StructureResult {
 
     public void addState(String elementId, BlockPos pos, BlockState state) {
         if (!elementId.equals(StructureElement.IGNORE.elementId)) {
-            List<BlockState> existing = states.get(elementId);
-            if (existing == null) states.put(elementId, Lists.newArrayList(state));
-            else existing.add(state);
+            List<Tuple<BlockPos, BlockState>> existing = states.get(elementId);
+            if (existing == null) states.put(elementId, Lists.newArrayList(new Tuple<>(pos.toImmutable(), state)));
+            else existing.add(new Tuple<>(pos.toImmutable(), state));
             positions.add(pos.toLong());
         }
     }

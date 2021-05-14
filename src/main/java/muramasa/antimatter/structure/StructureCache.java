@@ -17,6 +17,8 @@ import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.function.LongConsumer;
 
 @Mod.EventBusSubscriber

@@ -6,6 +6,7 @@ import muramasa.antimatter.capability.AntimatterCaps;
 import muramasa.antimatter.capability.IComponentHandler;
 import muramasa.antimatter.capability.machine.ControllerComponentHandler;
 import muramasa.antimatter.capability.machine.MachineRecipeHandler;
+import muramasa.antimatter.capability.machine.MultiMachineCoverHandler;
 import muramasa.antimatter.cover.CoverDynamo;
 import muramasa.antimatter.cover.CoverEnergy;
 import muramasa.antimatter.cover.CoverInput;
@@ -22,6 +23,7 @@ import muramasa.antimatter.util.Utils;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -48,6 +50,7 @@ public class TileEntityBasicMultiMachine extends TileEntityMachine implements IC
 
     public TileEntityBasicMultiMachine(Machine<?> type) {
         super(type);
+        this.coverHandler = LazyOptional.of(() -> new MultiMachineCoverHandler<>(this));
     }
 
     @Override
@@ -75,6 +78,10 @@ public class TileEntityBasicMultiMachine extends TileEntityMachine implements IC
             checkStructure();
         }
         super.onFirstTick();
+    }
+
+    public StructureResult getResult() {
+        return result;
     }
 
     public boolean checkStructure() {
@@ -192,9 +199,9 @@ public class TileEntityBasicMultiMachine extends TileEntityMachine implements IC
         return Collections.emptyList();
     }
 
-    public List<BlockState> getStates(String id) {
+    public List<Tuple<BlockPos, BlockState>> getStates(String id) {
         if (result != null) {
-            List<BlockState> list = result.states.get(id);
+            List<Tuple<BlockPos, BlockState>> list = result.states.get(id);
             return list != null ? list : Collections.emptyList();
         }
         return Collections.emptyList();
@@ -215,7 +222,7 @@ public class TileEntityBasicMultiMachine extends TileEntityMachine implements IC
     }
 
     public void afterStructureFormed(){
-        //NOOP
+        this.coverHandler.ifPresent(ch -> ((MultiMachineCoverHandler<?>)ch).onStructureFormed());
     }
 
     public void onStructureInvalidated() {
