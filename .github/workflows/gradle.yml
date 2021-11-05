@@ -28,5 +28,5 @@ jobs:
     - name: Upload artifacts to Github Actions
       uses: actions/upload-artifact@v2
       with:
-        name: Artifacts
+        name: Artifacts_AntimatterAPI
         path: build/libs
