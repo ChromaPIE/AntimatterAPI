@@ -204,7 +204,6 @@ public abstract class TileEntityPipe<T extends PipeType<T>> extends TileEntityBa
         return Connectivity.has(connection, direction.getIndex());
     }
 
-    @Override
     public boolean needsPath() {
         return this.coverHandler.map(t -> {
             for (ICover coverStack : t.getAll()) {
