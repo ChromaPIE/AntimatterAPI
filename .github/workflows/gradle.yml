@@ -25,6 +25,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build --stacktrace
+    - name: Execute runData task
+      run: ./gradlew runData
     - name: Upload artifacts to Github Actions
       uses: actions/upload-artifact@v2
       with:
