@@ -1,6 +1,7 @@
 package muramasa.antimatter.structure;
 
 import muramasa.antimatter.Data;
+import muramasa.antimatter.cover.CoverFactory;
 import muramasa.antimatter.cover.ICover;
 import muramasa.antimatter.tile.TileEntityFakeBlock;
 import muramasa.antimatter.tile.multi.TileEntityBasicMultiMachine;
@@ -17,27 +18,35 @@ import java.util.Arrays;
 import java.util.EnumMap;
 
 /**
- * FakeTileElement represents a fake block for this multiblock. It takes on the appearance of another block
- * as well as rendering possible covers on it. It also forwards capability calls to the master controller.
- * (In the case of multiple controllers, it returns the first one that is non-empty).
+ * FakeTileElement represents a fake block for this multiblock. It takes on the
+ * appearance of another block
+ * as well as rendering possible covers on it. It also forwards capability calls
+ * to the master controller.
+ * (In the case of multiple controllers, it returns the first one that is
+ * non-empty).
  */
 public class FakeTileElement extends StructureElement {
 
     private final IBlockStatePredicate[] preds;
-    private final EnumMap<Direction, ICover> covers = new EnumMap<>(Direction.class);
+    private final EnumMap<Direction, CoverFactory> covers = new EnumMap<>(Direction.class);
 
     public FakeTileElement(IBlockStatePredicate... pred) {
         this.preds = pred;
     }
 
     public FakeTileElement(Block... pred) {
-        this.preds = Arrays.stream(pred).map(t -> (IBlockStatePredicate) (reader, pos, state) -> state.getBlock() == Data.PROXY_INSTANCE || state.getBlock().matchesBlock(t)).toArray(IBlockStatePredicate[]::new);
+        this.preds = Arrays
+                .stream(pred).map(t -> (IBlockStatePredicate) (reader, pos,
+                        state) -> state.getBlock() == Data.PROXY_INSTANCE || state.getBlock().matchesBlock(t))
+                .toArray(IBlockStatePredicate[]::new);
     }
 
     public FakeTileElement(BlockState... pred) {
-        this.preds = Arrays.stream(pred).map(t -> (IBlockStatePredicate) (reader, pos, state) -> state.getBlock() == Data.PROXY_INSTANCE || state.equals(t)).toArray(IBlockStatePredicate[]::new);
+        this.preds = Arrays
+                .stream(pred).map(t -> (IBlockStatePredicate) (reader, pos,
+                        state) -> state.getBlock() == Data.PROXY_INSTANCE || state.equals(t))
+                .toArray(IBlockStatePredicate[]::new);
     }
-
 
     public FakeTileElement() {
         this.preds = new IBlockStatePredicate[0];
@@ -89,7 +98,7 @@ public class FakeTileElement extends StructureElement {
         return false;
     }
 
-    public FakeTileElement cover(Direction side, ICover cover) {
+    public FakeTileElement cover(Direction side, CoverFactory cover) {
         this.covers.put(side, cover);
         return this;
     }
@@ -98,7 +107,7 @@ public class FakeTileElement extends StructureElement {
     public void onBuild(TileEntityBasicMultiMachine machine, BlockPos pos, StructureResult result, int count) {
         World world = machine.getWorld();
         BlockState oldState = world.getBlockState(pos);
-        //Already set.
+        // Already set.
         if (count > 1 || oldState.getBlock().matchesBlock(Data.PROXY_INSTANCE)) {
             ((TileEntityFakeBlock) world.getTileEntity(pos)).addController(machine);
             return;
@@ -114,7 +123,8 @@ public class FakeTileElement extends StructureElement {
     public void onRemove(TileEntityBasicMultiMachine machine, BlockPos pos, StructureResult result, int count) {
         World world = machine.getWorld();
         TileEntity tile = world.getTileEntity(pos);
-        if (!(tile instanceof TileEntityFakeBlock)) return;
+        if (!(tile instanceof TileEntityFakeBlock))
+            return;
         if (count == 0) {
             BlockState state = ((TileEntityFakeBlock) tile).getState();
             world.setBlockState(pos, state, 1 | 2 | 8);
