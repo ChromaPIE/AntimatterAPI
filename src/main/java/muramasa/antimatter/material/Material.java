@@ -43,16 +43,17 @@ public class Material implements ISharedAntimatterObject, IRegistryEntryProvider
     /**
      * Basic Members
      **/
-    private String domain, id;
+    private final String domain;
+    private final String id;
     private ITextComponent displayName;
-    private int rgb;
-    private TextureSet set;
+    private final int rgb;
+    private final TextureSet set;
 
     /**
      * Element Members
      **/
     private Element element;
-    private String chemicalFormula = "";
+    private String chemicalFormula = null;
 
     /**
      * Solid Members
@@ -96,8 +97,8 @@ public class Material implements ISharedAntimatterObject, IRegistryEntryProvider
      **/
     private int oreMulti = 1, smeltingMulti = 1, byProductMulti = 1;
     private Material smeltInto, directSmeltInto, arcSmeltInto, macerateInto;
-    private List<MaterialStack> processInto = new ObjectArrayList<>();
-    private List<Material> byProducts = new ObjectArrayList<>();
+    private final List<MaterialStack> processInto = new ObjectArrayList<>();
+    private final List<Material> byProducts = new ObjectArrayList<>();
 
     public Material(String domain, String id, int rgb, TextureSet set, String... modIds) {
         this.domain = domain;
@@ -416,9 +417,12 @@ public class Material implements ISharedAntimatterObject, IRegistryEntryProvider
 
     public void setChemicalFormula() {
         if (!enabled) return;
+        if (chemicalFormula != null) return;
         if (element != null) chemicalFormula = element.getElement();
-        else if (!processInto.isEmpty())
+        else if (!processInto.isEmpty()) {
+            processInto.forEach(t -> t.m.setChemicalFormula());
             chemicalFormula = String.join("", processInto.stream().map(MaterialStack::toString).collect(Collectors.joining()));
+        }
     }
 
     /**
@@ -481,7 +485,7 @@ public class Material implements ISharedAntimatterObject, IRegistryEntryProvider
     }
 
     public String getChemicalFormula() {
-        return chemicalFormula;
+        return chemicalFormula == null ? "" : chemicalFormula;
     }
 
     /**
