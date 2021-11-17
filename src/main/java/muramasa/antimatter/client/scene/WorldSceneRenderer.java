@@ -52,7 +52,7 @@ public abstract class WorldSceneRenderer {
     protected static final IntBuffer VIEWPORT_BUFFER = ByteBuffer.allocateDirect(16 * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
     protected static final FloatBuffer PIXEL_DEPTH_BUFFER = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asFloatBuffer();
     protected static final FloatBuffer OBJECT_POS_BUFFER = ByteBuffer.allocateDirect(3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-
+    //Changed from IBlockDisplayReader to TrackedDummyWorld to access BlockInfo, for now.
     public final IBlockDisplayReader world;
     public final Map<Collection<BlockPos>, ISceneRenderHook> renderedBlocksMap;
     private Consumer<WorldSceneRenderer> beforeRender;

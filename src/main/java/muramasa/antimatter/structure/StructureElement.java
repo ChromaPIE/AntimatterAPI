@@ -1,9 +1,13 @@
 package muramasa.antimatter.structure;
 
 import muramasa.antimatter.machine.MachineState;
+import muramasa.antimatter.machine.types.BasicMultiMachine;
 import muramasa.antimatter.tile.multi.TileEntityBasicMultiMachine;
 import muramasa.antimatter.util.int3;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+
+import java.util.List;
 
 public class StructureElement {
 
@@ -28,6 +32,10 @@ public class StructureElement {
     public StructureElement exclude() {
         exclude = true;
         return this;
+    }
+
+    public boolean renderShared() {
+        return false;
     }
 
     public boolean excludes() {
@@ -81,6 +89,10 @@ public class StructureElement {
      * @param count    refCount as usual
      */
     public void onStateChange(TileEntityBasicMultiMachine<?> machine, MachineState newState, BlockPos pos, StructureResult result, int count) {
+
+    }
+
+    public void onInfoTooltip(List<ITextComponent> text, long count, TileEntityBasicMultiMachine<?> machine) {
 
     }
 
