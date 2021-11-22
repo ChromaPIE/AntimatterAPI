@@ -9,13 +9,11 @@ import muramasa.antimatter.integration.jei.renderer.IInfoRenderer;
 import muramasa.antimatter.tile.multi.TileEntityMultiMachine;
 import muramasa.antimatter.tile.pipe.TileEntityPipe;
 import net.minecraft.client.Minecraft;
-import net.minecraft.fluid.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.Tesseract;
 import tesseract.api.ITickingController;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.FluidHolder;
-import tesseract.api.fluid.FluidStatus;
 import tesseract.api.gt.GTController;
 import tesseract.api.item.ItemController;
 
@@ -34,7 +32,7 @@ public class InfoRenderWidget<T extends InfoRenderWidget<T>> extends Widget {
 
     @Override
     public void render(MatrixStack matrixStack, double mouseX, double mouseY, float partialTicks) {
-        renderer.drawInfo((T) this, matrixStack, Minecraft.getInstance().fontRenderer, realX(), realY());
+        renderer.drawInfo((T) this, matrixStack, Minecraft.getInstance().font, realX(), realY());
     }
 
     public static <T extends InfoRenderWidget<T>> WidgetSupplier build(IInfoRenderer<T> renderer) {
@@ -90,27 +88,27 @@ public class InfoRenderWidget<T extends InfoRenderWidget<T>> extends Widget {
         public void init() {
             super.init();
             TileEntityPipe<?> pipe = (TileEntityPipe<?>) gui.handler;
-            final long pos = pipe.getPos().toLong();
+            final long pos = pipe.getBlockPos().asLong();
             gui.syncLong(() -> {
-                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0L;
                 GTController gt = (GTController) controller;
                 return gt.getTotalVoltage();
             }, a -> this.voltAverage = a, SERVER_TO_CLIENT);
             gui.syncLong(() -> {
-                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0L;
                 GTController gt = (GTController) controller;
                 return gt.totalAmps();
             }, a -> this.ampAverage = a, SERVER_TO_CLIENT);
             gui.syncInt(() -> {
-                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0;
                 GTController gt = (GTController) controller;
                 return gt.cableFrameAverage(pos);
             }, a -> this.cableAverage = a, SERVER_TO_CLIENT);
             gui.syncLong(() -> {
-                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.GT_ENERGY.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0L;
                 GTController gt = (GTController) controller;
                 return gt.totalLoss();
@@ -135,18 +133,18 @@ public class InfoRenderWidget<T extends InfoRenderWidget<T>> extends Widget {
         public void init() {
             super.init();
             TileEntityPipe<?> pipe = (TileEntityPipe<?>) gui.handler;
-            final long pos = pipe.getPos().toLong();
+            final long pos = pipe.getBlockPos().asLong();
             gui.syncInt(() -> {
-                ITickingController controller = Tesseract.ITEM.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.ITEM.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0;
                 ItemController gt = (ItemController) controller;
                 return gt.getTransferred();
             }, a -> this.transferred = a, SERVER_TO_CLIENT);
             gui.syncInt(() -> {
-                ITickingController controller = Tesseract.ITEM.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.ITEM.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0;
                 ItemController gt = (ItemController) controller;
-                return gt.getCableTransferred(pipe.getPos().toLong());
+                return gt.getCableTransferred(pipe.getBlockPos().asLong());
             }, a -> this.cableTransferred = a, SERVER_TO_CLIENT);
         }
 
@@ -168,23 +166,23 @@ public class InfoRenderWidget<T extends InfoRenderWidget<T>> extends Widget {
         public void init() {
             super.init();
             TileEntityPipe<?> pipe = (TileEntityPipe<?>) gui.handler;
-            final long pos = pipe.getPos().toLong();
+            final long pos = pipe.getBlockPos().asLong();
             gui.syncInt(() -> {
-                ITickingController controller = Tesseract.FLUID.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.FLUID.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return 0;
                 FluidController gt = (FluidController) controller;
                 FluidHolder holder = gt.getCableHolder(pos);
-                return holder == null ? 0 : holder.getPressure();
+                return holder == null ? 0 : holder.getPressureAvailable();
             }, a -> this.holderPressure = a, SERVER_TO_CLIENT);
             gui.syncFluidStack(() -> {
-                ITickingController controller = Tesseract.FLUID.getController(pipe.getWorld(), pipe.getPos().toLong());
+                ITickingController controller = Tesseract.FLUID.getController(pipe.getLevel(), pipe.getBlockPos().asLong());
                 if (controller == null) return FluidStack.EMPTY;
                 FluidController gt = (FluidController) controller;
                 FluidHolder holder = gt.getCableHolder(pos);
                 if (holder != null) {
-                    Set<Fluid> fluids = holder.getFluids();
+                    Set<FluidHolder.SetHolder> fluids = holder.getFluids();
                     if (fluids != null && fluids.size() > 0) {
-                        return new FluidStack(fluids.iterator().next(), holder.getPressure());
+                        return new FluidStack(fluids.iterator().next().fluid, holder.getPressureAvailable());
                     }
                 }
                 return FluidStack.EMPTY;

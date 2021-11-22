@@ -37,7 +37,7 @@ public class TileEntityTransformer<T extends TileEntityTransformer<T>> extends T
         energyHandler.set(() -> new MachineEnergyHandler<T>((T) this, 0L, capFunc.applyAsLong(getMachineTier().getVoltage()), getMachineTier().getVoltage() * 4, getMachineTier().getVoltage(), amperage, amperage * 4) {
             @Override
             public boolean canOutput(Direction direction) {
-                return isDefaultMachineState() == (tile.getFacing().getIndex() != direction.getIndex());
+                return isDefaultMachineState() == (tile.getFacing().get3DDataValue() != direction.get3DDataValue());
             }
 
             @Override
@@ -75,14 +75,14 @@ public class TileEntityTransformer<T extends TileEntityTransformer<T>> extends T
         if (type == SOFT_HAMMER && hand == Hand.MAIN_HAND) {
             toggleMachine();
             energyHandler.ifPresent(h -> {
-                int temp = h.getOutputAmperage();
+                long temp = h.getOutputAmperage();
                 h.setOutputAmperage(h.getInputAmperage());
                 h.setInputAmperage(temp);
                 temp = h.getOutputVoltage();
                 h.setOutputVoltage(h.getInputVoltage());
                 h.setInputVoltage(temp);
                 this.refreshCap(TesseractGTCapability.ENERGY_HANDLER_CAPABILITY);
-                player.sendMessage(new StringTextComponent((isDefaultMachineState() ? "Step Down, In: " : "Step Up, In") + h.getInputVoltage() + "V@" + h.getInputAmperage() + "Amp, Out: " + h.getOutputVoltage() + "V@" + h.getOutputAmperage() + "Amp"), player.getUniqueID());
+                player.sendMessage(new StringTextComponent((isDefaultMachineState() ? "Step Down, In: " : "Step Up, In") + h.getInputVoltage() + "V@" + h.getInputAmperage() + "Amp, Out: " + h.getOutputVoltage() + "V@" + h.getOutputAmperage() + "Amp"), player.getUUID());
             });
             return ActionResultType.SUCCESS;
         }

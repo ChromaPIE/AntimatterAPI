@@ -20,6 +20,7 @@ import net.minecraft.util.Direction;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import tesseract.api.gt.GTTransaction;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -312,12 +313,15 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
             if (tile.energyHandler.isPresent()) {
                 if (!generator) {
                     long power = getPower();
-                    if (tile.energyHandler.map(t -> t.extractInternal(power, true, true)).orElse(0L) >= power) {
-                        if (!simulate)
-                            tile.energyHandler.map(t -> t.extractInternal(power, false, true));
-                        return true;
-                    } else {
-                        return false;
+                    GTTransaction transaction = tile.energyHandler.map(eh -> eh.extract(GTTransaction.Mode.INTERNAL)).orElse(null);
+                    if (transaction != null) {
+                        if (simulate) {
+                            return transaction.eu >= power;
+                        } else {
+                            transaction.addData(power, Utils.sink());
+                            transaction.commit();
+                            return true;
+                        }
                     }
                 } else {
                     return consumeGeneratorResources(simulate);
@@ -328,7 +332,7 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
     }
 
     protected boolean validateRecipe(Recipe r) {
-        int voltage = this.generator ? tile.getMaxOutputVoltage() : tile.getMachineType().amps() * tile.getMaxInputVoltage();
+        long voltage = this.generator ? tile.getMaxOutputVoltage() : tile.getMachineType().amps() * tile.getMaxInputVoltage();
         boolean ok = voltage >= r.getPower() / r.getAmps();
         List<ItemStack> consumed = this.tile.itemHandler.map(t -> t.consumeInputs(r, true)).orElse(Collections.emptyList());
         return ok && (consumed.size() > 0 || !r.hasInputItems());
@@ -434,7 +438,12 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
             inserted = (long) ((double) toConsume * activeRecipe.getPower() / activeRecipe.getInputFluids()[0].getAmount() * tile.getMachineType().getMachineEfficiency());
 
         final long t = inserted;
-        long actual = tile.energyHandler.map(h -> h.insertInternal(t, true, true)).orElse(0L);
+        GTTransaction transaction = new GTTransaction(t, Utils.sink());
+        if (!tile.energyHandler.map(eh -> eh.insert(transaction)).orElse(false)) {
+            return false;
+        }
+        //Check leftover eu.
+        long actual = t - transaction.eu;
         //If there isn't enough room for an entire run reduce output.
         //E.g. if recipe is 24 eu per MB then you have to run 2x to match 48 eu/t
         //but eventually it will be too much so reduce output.
@@ -442,14 +451,12 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
         while (actual < inserted && actual > 0) {
             toConsume--;
             inserted = (long) ((double) toConsume * activeRecipe.getPower() / activeRecipe.getInputFluids()[0].getAmount() * tile.getMachineType().getMachineEfficiency());
-            final long temp = inserted;
-            actual = tile.energyHandler.map(h -> h.insertInternal(temp, true, true)).orElse(0L);
+            actual = Math.min(inserted, transaction.eu);
         }
         //If nothing to insert.
         if (actual == 0) return false;
         //because lambda don't like primitives
         final long actualConsume = toConsume;
-        final long actualInsert = inserted;
         //make sure there are fluids avaialble
         if (actualConsume == 0 || tile.fluidHandler.map(h -> {
             int amount = h.getInputTanks().drain(new FluidStack(activeRecipe.getInputFluids()[0], (int) actualConsume), IFluidHandler.FluidAction.SIMULATE).getAmount();
@@ -461,8 +468,9 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
             return false;
         }).orElse(false)) {
             //insert power!
-            if (!simulate)
-                tile.energyHandler.ifPresent(handler -> handler.insertInternal(actualInsert, false, true));
+            if (!simulate) {
+                transaction.commit();
+            }
             return true;
         }
         return false;
@@ -574,7 +582,7 @@ public class MachineRecipeHandler<T extends TileEntityMachine<T>> implements IMa
     public void deserializeNBT(CompoundNBT nbt) {
         itemInputs = new ObjectArrayList<>();
         fluidInputs = new ObjectArrayList<>();
-        nbt.getList("I", 10).forEach(t -> itemInputs.add(ItemStack.read((CompoundNBT) t)));
+        nbt.getList("I", 10).forEach(t -> itemInputs.add(ItemStack.of((CompoundNBT) t)));
         nbt.getList("F", 10).forEach(t -> fluidInputs.add(FluidStack.loadFluidStackFromNBT((CompoundNBT) t)));
         this.currentProgress = nbt.getInt("P");
     }
