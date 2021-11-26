@@ -24,9 +24,9 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build --stacktrace
+      run: ./gradlew publish --stacktrace
     - name: Upload artifacts to Github Actions
       uses: actions/upload-artifact@v2
       with:
         name: Artifacts_AntimatterAPI
-        path: build/libs
+        path: mcmodsrepo
