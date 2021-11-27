@@ -29,4 +29,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Artifacts_AntimatterAPI
-        path: mcmodsrepo
+        path: mcmodsrepo/github/gregtech-intergalactical/AntimatterAPI/
